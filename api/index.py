@@ -1,6 +1,5 @@
 
 import json
-import os
 from typing import List, Literal, Optional
 
 from fastapi import FastAPI
@@ -8,6 +7,9 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 from google import genai
 from google.genai import types
+
+# Paste your NEW Gemini API key here
+GEMINI_API_KEY = "AQ.Ab8RN6KgEcZpxtTFpCz5Ok7JAJjBPiMgTzjzK2593RRwAKfGxg"
 
 APP_VERSION = "1.0"
 DEFAULT_MODEL = "gemini-2.5-flash"
@@ -47,7 +49,7 @@ def friendly_error(exc):
     msg = str(exc).lower()
 
     if "api key" in msg or "401" in msg or "403" in msg:
-        return "Gemini API key error. Check server configuration."
+        return "Gemini API key error. Check your API key."
     if "429" in msg or "quota" in msg:
         return "Rate limit reached. Try again later."
     if "safety" in msg or "blocked" in msg:
@@ -57,31 +59,39 @@ def friendly_error(exc):
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "app": "Kronbot", "version": APP_VERSION}
+    return {
+        "status": "ok",
+        "app": "Kronbot",
+        "version": APP_VERSION
+    }
 
 
 @app.get("/models")
-def models():
+def get_models():
     return {
         "default": DEFAULT_MODEL,
-        "models": [{"id": k, "name": v} for k, v in MODELS.items()]
+        "models": [
+            {"id": key, "name": value}
+            for key, value in MODELS.items()
+        ]
     }
 
 
 @app.post("/chat")
 def chat(req: ChatRequest):
 
-    key = os.environ.get("GEMINI_API_KEY")
+    key = GEMINI_API_KEY
 
-    if not key:
+    if not key or key == "AQ.Ab8RN6KgEcZpxtTFpCz5Ok7JAJjBPiMgTzjzK2593RRwAKfGxg":
         return JSONResponse(
-            {"error": "GEMINI_API_KEY is not configured"},
+            {"error": "API key is missing"},
             status_code=500
         )
 
     model = req.model if req.model in MODELS else DEFAULT_MODEL
 
     system = BASE_PROMPT
+
     if req.system_prompt.strip():
         system += "\n\n" + req.system_prompt.strip()
 
@@ -93,14 +103,16 @@ def chat(req: ChatRequest):
         for m in req.messages
     ]
 
-    cfg = dict(
-        system_instruction=system,
-        temperature=req.temperature,
-        max_output_tokens=req.max_tokens
-    )
+    cfg = {
+        "system_instruction": system,
+        "temperature": req.temperature,
+        "max_output_tokens": req.max_tokens
+    }
 
     if "pro" not in model:
-        cfg["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
+        cfg["thinking_config"] = types.ThinkingConfig(
+            thinking_budget=0
+        )
 
     config = types.GenerateContentConfig(**cfg)
 
@@ -129,17 +141,3 @@ def chat(req: ChatRequest):
             "X-Accel-Buffering": "no"
         }
     )
-        try:
-            client = genai.Client(api_key=key)
-            for chunk in client.models.generate_content_stream(model=model, contents=contents, config=config):
-                if chunk.text:
-                    yield sse({"t": chunk.text})
-            yield sse({"done": True})
-        except Exception as exc:  # noqa: BLE001
-            yield sse({"error": friendly_error(exc)})
-
-    return StreamingResponse(
-        stream(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"},
-)
