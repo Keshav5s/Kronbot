@@ -1,0 +1,660 @@
+
+:root {
+    --bg: #090909;
+    --panel: #111111;
+    --panel2: #191919;
+    --border: #292929;
+    --text: #f5f5f5;
+    --muted: #888888;
+    --white: #ffffff;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+}
+
+button, textarea, select {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.app {
+    display: flex;
+    height: 100dvh;
+}
+
+/* Sidebar */
+
+.sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: #0d0d0d;
+    border-right: 1px solid var(--border);
+    padding: 22px 16px;
+    display: flex;
+    flex-direction: column;
+    transition: transform .3s ease;
+    z-index: 10;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 35px;
+    padding: 0 5px;
+}
+
+.logo, .welcome-logo {
+    width: 42px;
+    height: 42px;
+    background: white;
+    color: black;
+    border-radius: 13px;
+    display: grid;
+    place-items: center;
+    font-size: 25px;
+    font-weight: 800;
+}
+
+.brand h2 {
+    font-size: 17px;
+}
+
+.brand span {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.new-chat {
+    background: white;
+    color: black;
+    border: none;
+    border-radius: 9px;
+    padding: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: .2s;
+}
+
+.new-chat:hover, .save-btn:hover {
+    opacity: .85;
+    transform: translateY(-1px);
+}
+
+.side-heading {
+    color: #666;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    margin: 35px 8px 12px;
+}
+
+.side-link {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    text-align: left;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 5px;
+    font-size: 13px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.side-link:hover, .side-link.active {
+    background: #202020;
+    color: white;
+}
+
+.sidebar-bottom {
+    margin-top: auto;
+}
+
+.profile {
+    border-top: 1px solid var(--border);
+    padding-top: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-avatar {
+    width: 35px;
+    height: 35px;
+    background: #303030;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-weight: bold;
+}
+
+.profile strong, .profile small {
+    display: block;
+    font-size: 12px;
+}
+
+.profile small {
+    color: var(--muted);
+    margin-top: 4px;
+}
+
+.online-dot {
+    width: 8px;
+    height: 8px;
+    background: #72cf88;
+    border-radius: 50%;
+    margin-left: auto;
+}
+
+/* Main */
+
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.topbar {
+    height: 65px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 25px;
+}
+
+.top-title {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.top-title strong {
+    font-size: 14px;
+}
+
+.version {
+    font-size: 10px;
+    background: #252525;
+    color: #bbb;
+    padding: 4px 7px;
+    border-radius: 5px;
+}
+
+.icon-btn {
+    background: transparent;
+    color: #aaa;
+    border: none;
+    padding: 10px;
+    font-size: 16px;
+}
+
+.icon-btn:hover {
+    color: white;
+}
+
+#menuBtn {
+    display: none;
+}
+
+/* Chat area */
+
+.chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 30px 18px;
+    scroll-behavior: smooth;
+}
+
+.welcome {
+    max-width: 720px;
+    margin: 65px auto 20px;
+    text-align: center;
+    animation: appear .5s ease;
+}
+
+.welcome-logo {
+    margin: auto auto 25px;
+    width: 58px;
+    height: 58px;
+    font-size: 34px;
+    border-radius: 17px;
+}
+
+.welcome h1 {
+    font-size: clamp(23px, 4vw, 34px);
+    font-weight: 700;
+    letter-spacing: -1.2px;
+}
+
+.welcome > p {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 12px;
+}
+
+.suggestions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 38px;
+    text-align: left;
+}
+
+.suggestion {
+    background: #121212;
+    border: 1px solid var(--border);
+    padding: 18px;
+    border-radius: 12px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 9px;
+    transition: .25s;
+}
+
+.suggestion:hover {
+    background: #202020;
+    border-color: #555;
+    transform: translateY(-3px);
+}
+
+.suggestion i {
+    font-size: 17px;
+    color: #ddd;
+    margin-bottom: 4px;
+}
+
+.suggestion strong {
+    font-size: 13px;
+}
+
+.suggestion span {
+    color: #888;
+    font-size: 11px;
+}
+
+/* Messages */
+
+.messages {
+    max-width: 780px;
+    margin: auto;
+}
+
+.message {
+    display: flex;
+    gap: 13px;
+    margin: 25px 0;
+    animation: appear .25s ease;
+}
+
+.message.user {
+    flex-direction: row-reverse;
+}
+
+.avatar {
+    min-width: 34px;
+    height: 34px;
+    background: white;
+    color: black;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    font-weight: 800;
+}
+
+.user .avatar {
+    background: #292929;
+    color: white;
+}
+
+.message-content {
+    max-width: 85%;
+    min-width: 0;
+    line-height: 1.75;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.user .message-content {
+    background: #222;
+    padding: 11px 16px;
+    border-radius: 15px 4px 15px 15px;
+}
+
+.bot .message-content {
+    padding-top: 3px;
+}
+
+.message-content p {
+    margin-bottom: 12px;
+}
+
+.message-content pre {
+    background: #171717;
+    padding: 16px;
+    border-radius: 10px;
+    overflow-x: auto;
+    margin: 12px 0;
+    border: 1px solid #333;
+}
+
+.message-content code {
+    font-family: monospace;
+    font-size: 12px;
+}
+
+.message-content ul, .message-content ol {
+    padding-left: 22px;
+    margin-bottom: 12px;
+}
+
+.message-actions {
+    margin-top: 10px;
+}
+
+.copy-btn {
+    border: none;
+    color: #777;
+    background: transparent;
+    font-size: 12px;
+    padding: 5px;
+}
+
+.copy-btn:hover {
+    color: white;
+}
+
+/* Typing indicator */
+
+.typing {
+    display: flex;
+    gap: 5px;
+    padding: 10px 0;
+}
+
+.typing span {
+    width: 6px;
+    height: 6px;
+    background: #aaa;
+    border-radius: 50%;
+    animation: bounce .8s infinite alternate;
+}
+
+.typing span:nth-child(2) {
+    animation-delay: .2s;
+}
+
+.typing span:nth-child(3) {
+    animation-delay: .4s;
+}
+
+@keyframes bounce {
+    to {
+        transform: translateY(-6px);
+        opacity: .4;
+    }
+}
+
+@keyframes appear {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Input */
+
+.input-section {
+    width: min(780px, 95%);
+    margin: 0 auto;
+    padding: 15px 0 12px;
+}
+
+.input-box {
+    background: #171717;
+    border: 1px solid #363636;
+    border-radius: 16px;
+    padding: 14px;
+    transition: border .2s;
+}
+
+.input-box:focus-within {
+    border-color: #777;
+}
+
+#userInput {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: white;
+    resize: none;
+    outline: none;
+    font-size: 14px;
+    max-height: 160px;
+    min-height: 35px;
+    line-height: 1.6;
+}
+
+#userInput::placeholder {
+    color: #777;
+}
+
+.input-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.input-hint {
+    font-size: 10px;
+    color: #777;
+}
+
+.send-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 10px;
+    background: white;
+    color: black;
+    font-size: 15px;
+    transition: .2s;
+}
+
+.send-btn:hover {
+    transform: scale(1.06);
+}
+
+.send-btn:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+.disclaimer {
+    color: #666;
+    text-align: center;
+    font-size: 10px;
+    margin-top: 12px;
+}
+
+/* Settings */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000b;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 15px;
+}
+
+.modal-overlay.show {
+    display: flex;
+    animation: appear .2s;
+}
+
+.modal {
+    width: 100%;
+    max-width: 420px;
+    background: #151515;
+    border: 1px solid #333;
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.modal-header h2 {
+    font-size: 19px;
+}
+
+.setting-group {
+    margin-bottom: 25px;
+}
+
+.setting-group label {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.setting-group p {
+    color: #888;
+    font-size: 11px;
+    margin: 8px 0;
+}
+
+.setting-group input[type=range] {
+    width: 85%;
+    accent-color: white;
+    margin-top: 15px;
+}
+
+.setting-group select {
+    display: block;
+    margin-top: 12px;
+    background: #222;
+    border: 1px solid #444;
+    padding: 10px;
+    color: white;
+    width: 100%;
+    border-radius: 8px;
+}
+
+#temperatureValue {
+    font-size: 12px;
+    color: #aaa;
+}
+
+.save-btn {
+    width: 100%;
+    background: white;
+    color: black;
+    border: none;
+    border-radius: 9px;
+    padding: 12px;
+    font-weight: 600;
+}
+
+/* Mobile */
+
+@media(max-width: 700px) {
+
+    .sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        transform: translateX(-100%);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    #menuBtn {
+        display: block;
+    }
+
+    .topbar {
+        padding: 0 12px;
+        height: 58px;
+    }
+
+    .chat-area {
+        padding: 18px 12px;
+    }
+
+    .welcome {
+        margin-top: 55px;
+    }
+
+    .suggestions {
+        gap: 9px;
+        margin-top: 30px;
+    }
+
+    .suggestion {
+        padding: 13px;
+    }
+
+    .suggestion strong {
+        font-size: 12px;
+    }
+
+    .suggestion span {
+        font-size: 10px;
+    }
+
+    .input-section {
+        width: 94%;
+        padding-bottom: 10px;
+    }
+
+    .message-content {
+        font-size: 13px;
+    }
+
+    .message-content {
+        max-width: 88%;
+    }
+}
+
+@media(max-width: 360px) {
+    .suggestions {
+        grid-template-columns: 1fr;
+    }
+  }
+  
