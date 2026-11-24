@@ -1,0 +1,300 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Kronbot 1.0 - Your Personal AI Assistant</title>
+
+    <meta name="description"
+          content="Meet Kronbot, your personal AI assistant powered by Google Gemini. Ask questions, learn programming, generate ideas and get intelligent answers.">
+
+    <meta name="keywords"
+          content="Kronbot, AI chatbot, Gemini AI, personal AI assistant, AI assistant online">
+
+    <meta name="author" content="Kronbot">
+
+    <meta name="robots" content="index, follow">
+
+    <meta property="og:title"
+          content="Kronbot 1.0 - AI Assistant">
+
+    <meta property="og:description"
+          content="Your personal AI assistant powered by Gemini.">
+
+    <meta property="og:type" content="website">
+
+    <meta name="theme-color" content="#090909">
+
+    <link rel="canonical" href="https://YOUR-DOMAIN.vercel.app/">
+
+    <link rel="icon"
+          href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23000'/%3E%3Ctext x='50' y='70' font-size='65' text-anchor='middle' fill='white'%3EK%3C/text%3E%3C/svg%3E">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link rel="stylesheet" href="/static/style.css">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- Sidebar -->
+
+    <aside class="sidebar" id="sidebar">
+
+        <div class="brand">
+            <div class="logo">K</div>
+            <div>
+                <h2>Kronbot</h2>
+                <span>Version 1.0</span>
+            </div>
+        </div>
+
+        <button class="new-chat" id="newChat">
+            <i class="fa-solid fa-plus"></i>
+            New chat
+        </button>
+
+        <div class="side-heading">MENU</div>
+
+        <button class="side-link active">
+            <i class="fa-regular fa-message"></i>
+            Chat
+        </button>
+
+        <button class="side-link" id="settingsBtn">
+            <i class="fa-solid fa-sliders"></i>
+            Settings
+        </button>
+
+        <button class="side-link" id="clearChat">
+            <i class="fa-regular fa-trash-can"></i>
+            Clear conversation
+        </button>
+
+        <div class="sidebar-bottom">
+            <div class="profile">
+                <div class="profile-avatar">K</div>
+                <div>
+                    <strong>Kronbot AI</strong>
+                    <small>Personal Assistant</small>
+                </div>
+                <span class="online-dot"></span>
+            </div>
+        </div>
+
+    </aside>
+
+
+    <!-- Main content -->
+
+    <main class="main">
+
+        <header class="topbar">
+
+            <button class="icon-btn" id="menuBtn"
+                    aria-label="Open menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <div class="top-title">
+                <strong>Kronbot</strong>
+                <span class="version">1.0</span>
+            </div>
+
+            <button class="icon-btn" id="topSettings"
+                    aria-label="Settings">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+
+        </header>
+
+
+        <section class="chat-area" id="chatArea">
+
+            <div class="welcome" id="welcome">
+
+                <div class="welcome-logo">K</div>
+
+                <h1>How can I help you today?</h1>
+
+                <p>
+                    Your personal AI assistant.
+                    Powered by Google Gemini.
+                </p>
+
+                <div class="suggestions">
+
+                    <button class="suggestion"
+                            data-prompt="Explain Python programming for beginners.">
+
+                        <i class="fa-brands fa-python"></i>
+                        <strong>Learn Python</strong>
+                        <span>Start learning programming</span>
+
+                    </button>
+
+                    <button class="suggestion"
+                            data-prompt="Give me five creative project ideas.">
+
+                        <i class="fa-regular fa-lightbulb"></i>
+                        <strong>Generate ideas</strong>
+                        <span>Discover something new</span>
+
+                    </button>
+
+                    <button class="suggestion"
+                            data-prompt="Explain how artificial intelligence works.">
+
+                        <i class="fa-solid fa-brain"></i>
+                        <strong>Explore AI</strong>
+                        <span>Understand artificial intelligence</span>
+
+                    </button>
+
+                    <button class="suggestion"
+                            data-prompt="Write a professional email requesting an internship.">
+
+                        <i class="fa-regular fa-envelope"></i>
+                        <strong>Write something</strong>
+                        <span>Create professional content</span>
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="messages" id="messages"></div>
+
+        </section>
+
+
+        <!-- Input area -->
+
+        <footer class="input-section">
+
+            <div class="input-box">
+
+                <textarea
+                    id="userInput"
+                    rows="1"
+                    maxlength="10000"
+                    placeholder="Message Kronbot..."
+                    aria-label="Message Kronbot"
+                ></textarea>
+
+                <div class="input-bottom">
+
+                    <span class="input-hint">
+                        <i class="fa-solid fa-sparkles"></i>
+                        Powered by Gemini
+                    </span>
+
+                    <button id="sendBtn" class="send-btn"
+                            aria-label="Send message">
+
+                        <i class="fa-solid fa-arrow-up"></i>
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            <p class="disclaimer">
+                Kronbot can make mistakes. Verify important information.
+            </p>
+
+        </footer>
+
+    </main>
+
+</div>
+
+
+<!-- Settings modal -->
+
+<div class="modal-overlay" id="settingsModal">
+
+    <div class="modal">
+
+        <div class="modal-header">
+            <h2>Settings</h2>
+            <button id="closeSettings" class="icon-btn">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="setting-group">
+
+            <label for="temperature">
+                Creativity
+            </label>
+
+            <p>Control how creative the responses are.</p>
+
+            <input type="range" id="temperature"
+                   min="0" max="1" step="0.1" value="0.7">
+
+            <span id="temperatureValue">0.7</span>
+
+        </div>
+
+        <div class="setting-group">
+
+            <label for="responseStyle">
+                Response length
+            </label>
+
+            <select id="responseStyle">
+                <option value="short">Short</option>
+                <option value="balanced" selected>Balanced</option>
+                <option value="detailed">Detailed</option>
+            </select>
+
+        </div>
+
+        <div class="setting-group">
+
+            <label>Application information</label>
+
+            <p>Kronbot 1.0</p>
+            <p>Powered by Google Gemini AI</p>
+            <p>Built with FastAPI and jQuery</p>
+
+        </div>
+
+        <button id="saveSettings" class="save-btn">
+            Save settings
+        </button>
+
+    </div>
+
+</div>
+
+
+<script src="/static/app.js"></script>
+
+</body>
+</html>
