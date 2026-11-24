@@ -2,17 +2,20 @@
 import os
 from pathlib import Path
 
+import requests
+
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
-from google import genai
-from google.genai import types
 
-# Project directory
+
+# =====================================
+# KRONBOT 1.0 CONFIGURATION
+# =====================================
+
 BASE_DIR = Path(__file__).resolve().parent
 
-# FastAPI application
 app = FastAPI(
     title="Kronbot API",
     description="Kronbot 1.0 - Personal AI Assistant",
@@ -20,20 +23,27 @@ app = FastAPI(
 )
 
 # Gemini API configuration
-# Vercel Environment Variable name: GEMINI_API_KEY
-API_KEY = os.getenv("GEMINI_API_KEY")
-
-client = genai.Client(api_key=API_KEY) if API_KEY else None
+API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
 
 MODEL = "gemini-3.8-flash"
+
+GEMINI_URL = (
+    f"https://generativelanguage.googleapis.com/"
+    f"v1beta/models/{MODEL}:generateContent"
+)
+
+
+# =====================================
+# SYSTEM PROMPT
+# =====================================
 
 SYSTEM_PROMPT = """
 You are Kronbot, a helpful and intelligent AI assistant.
 
 Your personality:
 - Friendly, professional and intelligent.
-- Give clear and accurate answers.
-- Explain difficult concepts simply.
+- Give accurate and useful answers.
+- Explain difficult topics simply.
 - Use headings and bullet points.
 - Write code in properly formatted code blocks.
 - Never make up facts.
@@ -43,7 +53,11 @@ Your personality:
 You were created as Kronbot 1.0.
 """
 
-# Predefined questions and answers
+
+# =====================================
+# PREDEFINED QUESTIONS AND ANSWERS
+# =====================================
+
 FAQ = {
     "what is kronbot":
         "Kronbot is a personal AI chatbot powered by Google's Gemini AI.",
@@ -64,11 +78,20 @@ FAQ = {
 }
 
 
+# =====================================
+# REQUEST MODEL
+# =====================================
+
 class ChatRequest(BaseModel):
 
-    message: str = Field(min_length=1, max_length=10000)
+    message: str = Field(
+        min_length=1,
+        max_length=10000
+    )
 
-    history: list[dict] = Field(default_factory=list)
+    history: list[dict] = Field(
+        default_factory=list
+    )
 
     temperature: float = Field(
         default=0.7,
@@ -79,14 +102,163 @@ class ChatRequest(BaseModel):
     response_style: str = "balanced"
 
 
-# Homepage
+# =====================================
+# GEMINI API FUNCTION
+# =====================================
+
+def generate_response(contents, temperature, style):
+
+    if not API_KEY:
+        raise HTTPException(
+            status_code=500,
+            detail="GEMINI_API_KEY is missing in environment variables."
+        )
+
+    headers = {
+        "Content-Type": "application/json",
+        "x-goog-api-key": API_KEY
+    }
+
+    payload = {
+
+        "systemInstruction": {
+            "parts": [
+                {
+                    "text": SYSTEM_PROMPT + "\n" + style
+                }
+            ]
+        },
+
+        "contents": contents,
+
+        "generationConfig": {
+            "temperature": temperature,
+            "maxOutputTokens": 4096
+        }
+    }
+
+    try:
+
+        response = requests.post(
+            GEMINI_URL,
+            headers=headers,
+            json=payload,
+            timeout=60
+        )
+
+        if response.status_code != 200:
+
+            try:
+                error_data = response.json()
+                error_message = error_data.get(
+                    "error", {}
+                ).get(
+                    "message",
+                    "Unknown Gemini API error."
+                )
+            except ValueError:
+                error_message = "Invalid response from Gemini."
+
+            print(
+                "Gemini API Error:",
+                response.status_code,
+                error_message
+            )
+
+            if response.status_code == 401:
+                raise HTTPException(
+                    502,
+                    "Gemini authentication failed. "
+                    "Check your API key."
+                )
+
+            if response.status_code == 403:
+                raise HTTPException(
+                    502,
+                    "Gemini API access denied. "
+                    "Check API permissions."
+                )
+
+            if response.status_code == 404:
+                raise HTTPException(
+                    502,
+                    "Gemini model not found. Check model access."
+                )
+
+            if response.status_code == 429:
+                raise HTTPException(
+                    429,
+                    "Gemini API quota exceeded. Try again later."
+                )
+
+            raise HTTPException(
+                502,
+                f"Gemini API error: {error_message}"
+            )
+
+        data = response.json()
+
+        candidates = data.get("candidates", [])
+
+        if not candidates:
+            raise HTTPException(
+                502,
+                "Gemini did not return any response."
+            )
+
+        parts = candidates[0].get(
+            "content", {}
+        ).get(
+            "parts", []
+        )
+
+        answer = "".join(
+            part.get("text", "")
+            for part in parts
+            if "text" in part
+        )
+
+        if not answer.strip():
+            raise HTTPException(
+                502,
+                "Gemini returned an empty response."
+            )
+
+        return answer
+
+    except requests.Timeout:
+
+        raise HTTPException(
+            504,
+            "Gemini API request timed out."
+        )
+
+    except requests.RequestException as error:
+
+        print("Connection error:", str(error))
+
+        raise HTTPException(
+            502,
+            "Unable to connect to Gemini API."
+        )
+
+
+# =====================================
+# HOMEPAGE
+# =====================================
+
 @app.get("/")
 async def home():
 
-    return FileResponse(BASE_DIR / "index.html")
+    return FileResponse(
+        BASE_DIR / "index.html"
+    )
 
 
-# API information
+# =====================================
+# API STATUS
+# =====================================
+
 @app.get("/api")
 async def api_home():
 
@@ -97,25 +269,61 @@ async def api_home():
     }
 
 
-# API key diagnostic
+# =====================================
+# API KEY CHECK
+# =====================================
+
 @app.get("/api/check")
 async def check_api():
 
     return {
         "api_key_configured": bool(API_KEY),
-        "gemini_client_ready": client is not None,
+        "authentication_method": "x-goog-api-key",
         "model": MODEL
     }
 
 
-# FAQ endpoint
+# =====================================
+# GEMINI CONNECTION TEST
+# =====================================
+
+@app.get("/api/test-gemini")
+async def test_gemini():
+
+    answer = generate_response(
+        contents=[
+            {
+                "role": "user",
+                "parts": [
+                    {"text": "Reply with exactly: Kronbot connected"}
+                ]
+            }
+        ],
+        temperature=0,
+        style="Give only the requested short response."
+    )
+
+    return {
+        "status": "success",
+        "gemini_connected": True,
+        "reply": answer
+    }
+
+
+# =====================================
+# FAQ
+# =====================================
+
 @app.get("/api/faq")
 async def get_faq():
 
     return FAQ
 
 
-# Chat endpoint
+# =====================================
+# CHAT ENDPOINT
+# =====================================
+
 @app.post("/api/chat")
 async def chat(request: ChatRequest):
 
@@ -123,8 +331,8 @@ async def chat(request: ChatRequest):
 
     if not message:
         raise HTTPException(
-            status_code=400,
-            detail="Message cannot be empty."
+            400,
+            "Message cannot be empty."
         )
 
     # Predefined answers
@@ -137,14 +345,6 @@ async def chat(request: ChatRequest):
             "source": "faq"
         }
 
-    # Check API key
-    if client is None:
-
-        raise HTTPException(
-            status_code=500,
-            detail="Gemini API key is not configured."
-        )
-
     # Conversation history
     contents = []
 
@@ -153,29 +353,38 @@ async def chat(request: ChatRequest):
         role = item.get("role")
         content = item.get("content", "")
 
-        if role in ["user", "model"]:
+        if (
+            role in ["user", "model"]
+            and isinstance(content, str)
+            and content.strip()
+        ):
 
-            if isinstance(content, str) and content.strip():
-
-                contents.append({
-                    "role": role,
-                    "parts": [{"text": content[:10000]}]
-                })
+            contents.append({
+                "role": role,
+                "parts": [
+                    {"text": content[:10000]}
+                ]
+            })
 
     # Current message
     contents.append({
         "role": "user",
-        "parts": [{"text": message}]
+        "parts": [
+            {"text": message}
+        ]
     })
 
     # Response styles
     styles = {
 
-        "short": "Give short and direct answers.",
+        "short":
+            "Give short and direct answers.",
 
-        "balanced": "Give balanced answers with useful details.",
+        "balanced":
+            "Give balanced answers with useful details.",
 
-        "detailed": "Give detailed explanations and examples."
+        "detailed":
+            "Give detailed explanations and examples."
 
     }
 
@@ -184,61 +393,28 @@ async def chat(request: ChatRequest):
         styles["balanced"]
     )
 
-    try:
+    # Generate response
+    answer = generate_response(
+        contents=contents,
+        temperature=request.temperature,
+        style=style
+    )
 
-        response = client.models.generate_content(
-
-            model=MODEL,
-
-            contents=contents,
-
-            config=types.GenerateContentConfig(
-
-                system_instruction=SYSTEM_PROMPT + "\n" + style,
-
-                temperature=request.temperature,
-
-                max_output_tokens=4096
-
-            )
-
-        )
-
-        answer = response.text
-
-        if not answer:
-
-            raise HTTPException(
-                status_code=502,
-                detail="Gemini returned an empty response."
-            )
-
-        return {
-
-            "reply": answer,
-
-            "source": "gemini",
-
-            "model": MODEL
-
-        }
-
-    except HTTPException:
-        raise
-
-    except Exception as error:
-
-        print("Gemini API Error:", str(error))
-
-        raise HTTPException(
-            status_code=502,
-            detail="Gemini API request failed. Check your API key and model access."
-        )
+    return {
+        "reply": answer,
+        "source": "gemini",
+        "model": MODEL
+    }
 
 
-# Static files
+# =====================================
+# STATIC FILES
+# =====================================
+
 app.mount(
     "/static",
-    StaticFiles(directory=str(BASE_DIR / "static")),
+    StaticFiles(
+        directory=str(BASE_DIR / "static")
+    ),
     name="static"
 )
